@@ -1,0 +1,22 @@
+# Build artifacts
+artefacts/
+node_modules/
+.gradle/
+build/
+*.apk
+*.aab
+
+# Reports
+reports/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
