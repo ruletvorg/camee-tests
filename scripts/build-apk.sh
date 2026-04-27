@@ -7,7 +7,7 @@ set -euo pipefail
 # Skips Gradle build if APK already exists (avoids node 134 crash in settings.gradle evaluation)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_ROOT="/home/makame/projects/camee"
 BUILD_OUTPUT="$PROJECT_ROOT/application/android/app/build/outputs/apk/release/app-release.apk"
 
 echo "=== Camee Android Release Build ==="

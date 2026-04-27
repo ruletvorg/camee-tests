@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Test runner for Camee E2E tests
-# 1. Builds the Android APK (skips if already exists)
+# 1. Builds the Android APK (use --build to force rebuild)
 # 2. Installs and launches app on device
 # 3. Runs Maestro tests
 # 4. Saves artifacts (screenshots, reports) to ./artefacts
@@ -16,6 +16,13 @@ ARTIFACTS_DIR="$SCRIPT_DIR/artefacts"
 # Device config — override via env DEVICE_ID
 ADB="/home/makame/Android/Sdk/platform-tools/adb"
 DEVICE_ID="${DEVICE_ID:-5VLBB21819200104}"
+
+# ── Parse args ───────────────────────────────────────────────────────────────
+
+FORCE_BUILD=false
+if [[ "${1:-}" == "--build" ]]; then
+    FORCE_BUILD=true
+fi
 
 # Colours
 RED='\033[0;31m'
@@ -43,7 +50,10 @@ mkdir -p "$ARTIFACTS_DIR"/{screenshots,reports,flows}
 
 log_info "=== Step 1/3: Building APK ==="
 
-if [[ ! -f "$APP_APK" ]]; then
+if $FORCE_BUILD; then
+    log_info "Forcing build (--build flag)..."
+    bash "$SCRIPT_DIR/scripts/build-apk.sh"
+elif [[ ! -f "$APP_APK" ]]; then
     log_info "APK not found, running build..."
     bash "$SCRIPT_DIR/scripts/build-apk.sh"
 else
