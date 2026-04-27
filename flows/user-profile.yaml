@@ -1,0 +1,5 @@
+# Flow: User Profile Screen
+appId: com.rulettv.app
+---
+- launchApp
+- takeScreenshot: { name: "user_profile_screen" }

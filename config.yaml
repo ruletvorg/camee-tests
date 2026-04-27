@@ -1,0 +1,36 @@
+# Maestro E2E Configuration for Camee Android
+# https://maestro.mobile.dev/configuration/reference
+
+appId: com.rulettv.app
+platform: android
+
+# Timing
+timeout:
+  launchApp: 30000
+  afterEach: 1000
+
+# Flow files
+flowDir: ./flows
+
+# Report output
+output:
+  reportDir: ./reports
+  includeVideos: true
+  screenshotOnFailure: true
+
+# Device config
+device:
+  # Pixel 5 / Android 13 generic
+  display:
+    width: 1080
+    height: 2340
+    density: 440
+
+# Environment variables available in flows
+env:
+  BASE_URL: "https://dev.camee.io"
+  API_URL: "https://dev.camee.io/api"
+  WS_URL: "wss://dev.camee.io"
+  TEST_USER_EMAIL: ""
+  TEST_USER_PASSWORD: ""
+  TEST_USER_ID: ""

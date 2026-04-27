@@ -1,0 +1,5 @@
+# Flow: Video Chat Screen
+appId: com.rulettv.app
+---
+- launchApp
+- takeScreenshot: { name: "video_chat_screen" }

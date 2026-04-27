@@ -1,0 +1,15 @@
+{
+  "name": "camee-testing",
+  "version": "1.0.0",
+  "description": "Maestro E2E tests for Camee Android app",
+  "private": true,
+  "scripts": {
+    "test": "maestro test flows --config config.yaml",
+    "test:debug": "maestro test flows --config config.yaml --debug",
+    "test:flow": "maestro test flows",
+    "test:single": "maestro test",
+    "record": "maestro record flows",
+    "studio": "maestro studio"
+  },
+  "devDependencies": {}
+}

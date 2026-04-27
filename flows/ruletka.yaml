@@ -1,0 +1,33 @@
+# Flow: Ruletka (Random Video Chat) Test
+# Description: Test random video chat matching flow
+
+appId: com.rulettv.app
+
+---
+- launchApp
+- waitForAppToIdle: 2000
+
+# Navigate to Ruletka tab (first tab - video icon)
+- tapOn:
+    id: "ruletka"
+- waitForAppToIdle: 2000
+
+# Take screenshot of ruletka screen
+- takeScreenshot: { name: "ruletka_screen" }
+
+# Check if start button exists
+- assertVisible:
+    text: "Start"
+- takeScreenshot: { name: "ruletka_start_button" }
+
+# Tap start to begin matching
+- tapOn:
+    text: "Start"
+- waitForAppToIdle: 3000
+
+# Wait for matching (can take time)
+- takeScreenshot: { name: "matching" }
+
+# If matched - check video elements
+- waitForAppToIdle: 5000
+- takeScreenshot: { name: "video_call" }

@@ -1,0 +1,8 @@
+# Flow: App Launch Test
+# Description: Verify app launches successfully
+
+appId: com.rulettv.app
+
+---
+- launchApp
+- takeScreenshot: "app_launched"
