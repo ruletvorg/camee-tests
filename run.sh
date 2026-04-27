@@ -2,20 +2,20 @@
 set -euo pipefail
 
 # Test runner for Camee E2E tests
-# 1. Builds the Android APK
-# 2. Launches app on device
+# 1. Builds the Android APK (skips if already exists)
+# 2. Installs and launches app on device
 # 3. Runs Maestro tests
 # 4. Saves artifacts (screenshots, reports) to ./artefacts
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 APP_APK="$PROJECT_ROOT/application/android/app/build/outputs/apk/release/app-release.apk"
 MAESTRO_BIN="${MAESTRO_BIN:-$HOME/.maestro/bin/maestro}"
 ARTIFACTS_DIR="$SCRIPT_DIR/artefacts"
 
-# Device config
+# Device config — override via env DEVICE_ID
 ADB="/home/makame/Android/Sdk/platform-tools/adb"
-DEVICE_ID="5VLBB21819200104"
+DEVICE_ID="${DEVICE_ID:-5VLBB21819200104}"
 
 # Colours
 RED='\033[0;31m'
@@ -26,6 +26,13 @@ NC='\033[0m'
 log_info()  { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_warn()  { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+
+# ── Check dependencies ────────────────────────────────────────────────────────
+
+if ! command -v "$ADB" &>/dev/null; then
+    log_error "ADB not found at: $ADB"
+    exit 1
+fi
 
 # ── Prep ────────────────────────────────────────────────────────────────────
 
@@ -49,22 +56,24 @@ fi
 log_info "=== Step 2/3: Installing and launching app ==="
 
 log_info "Checking ADB connection..."
-if ! $ADB -s $DEVICE_ID get-state 2>/dev/null | grep -q device; then
+if ! "$ADB" -s "$DEVICE_ID" get-state 2>/dev/null | grep -q device; then
     log_error "Device $DEVICE_ID not found or offline"
+    log_info "Devices attached:"
+    "$ADB" devices -l 2>&1
     exit 1
 fi
 
 # Kill existing app
 log_info "Stopping app..."
-$ADB -s $DEVICE_ID shell "am force-stop com.rulettv.app" 2>/dev/null || true
+"$ADB" -s "$DEVICE_ID" shell "am force-stop com.rulettv.app" 2>/dev/null || true
 
 # Uninstall old APK and install fresh
 log_info "Installing APK..."
-$ADB -s $DEVICE_ID install -r -g "$APP_APK" 2>&1 | tail -3
+"$ADB" -s "$DEVICE_ID" install -r -g "$(realpath "$APP_APK")" 2>&1 | tail -3
 
 # Launch app
 log_info "Launching app..."
-$ADB -s $DEVICE_ID shell "am start -n com.rulettv.app/.MainActivity" 2>&1 | tail -3
+"$ADB" -s "$DEVICE_ID" shell "am start -n com.rulettv.app/.MainActivity" 2>&1 | tail -3
 
 # Wait for app to stabilise
 sleep 5
@@ -83,52 +92,47 @@ fi
 log_info "Ensuring Maestro server is installed..."
 MAESTRO_SERVER_APK="/tmp/maestro-app.apk"
 if [[ -f "$MAESTRO_SERVER_APK" ]]; then
-    $ADB -s $DEVICE_ID install -r -g "$MAESTRO_SERVER_APK" 2>&1 | grep -E "Success|Failure|Error" || true
+    "$ADB" -s "$DEVICE_ID" install -r -g "$MAESTRO_SERVER_APK" 2>&1 | \
+        grep -E "Success|Failure|Error" || true
 fi
 
 # Take initial screenshot (before tests)
 log_info "Capturing baseline screenshot..."
-$ADB -s $DEVICE_ID shell screencap -p /sdcard/baseline.png
-$ADB -s $DEVICE_ID pull /sdcard/baseline.png "$ARTIFACTS_DIR/screenshots/" 2>/dev/null || true
+"$ADB" -s "$DEVICE_ID" shell screencap -p /sdcard/baseline.png
+"$ADB" -s "$DEVICE_ID" pull /sdcard/baseline.png "$ARTIFACTS_DIR/screenshots/" 2>/dev/null || true
 
 # Run Maestro flows
 log_info "Running Maestro flows..."
-FLOW_DIR="$SCRIPT_DIR/flows"
-ARTIFACTS_DIR="$ARTIFACTS_DIR" \
-    MAESTRO_BIN="$MAESTRO_BIN" \
-    DEVICE_ID="$DEVICE_ID" \
-    ADB="$ADB" \
-    bash -c '
-MAESTRO_BIN="${MAESTRO_BIN:-$HOME/.maestro/bin/maestro}"
-ADB="${ADB:-/home/makame/Android/Sdk/platform-tools/adb}"
-DEVICE_ID="${DEVICE_ID:-5VLBB21819200104}"
-ARTIFACTS_DIR="${ARTIFACTS_DIR:-$SCRIPT_DIR/artefacts}"
 FLOW_DIR="$SCRIPT_DIR/flows"
 
 for flow in "$FLOW_DIR"/*.yaml; do
     [[ -e "$flow" ]] || continue
     flow_name=$(basename "$flow" .yaml)
     echo ""
-    echo ">>> Running flow: $flow_name"
-    "$MAESTRO_BIN" test \
-        --device-spec /dev/stdin \
-        --var deviceId="$DEVICE_ID" \
-        --var artifactsDir="$ARTIFACTS_DIR" \
-        "$flow" 2>&1 || true
+    log_info ">>> Flow: $flow_name"
 
-    # Capture screenshot after each flow
-    $ADB -s "$DEVICE_ID" shell screencap -p /sdcard/"$flow_name".png
-    $ADB -s "$DEVICE_ID" pull /sdcard/"$flow_name".png "$ARTIFACTS_DIR/screenshots/" 2>/dev/null || true
+    # Capture screenshot before flow
+    "$ADB" -s "$DEVICE_ID" shell screencap -p /sdcard/"$flow_name"_before.png
+    "$ADB" -s "$DEVICE_ID" pull /sdcard/"$flow_name"_before.png "$ARTIFACTS_DIR/screenshots/" 2>/dev/null || true
+
+    # Run maestro (errors are non-fatal — continue to next flow)
+    "$MAESTRO_BIN" test \
+        --platform android \
+        --udid "$DEVICE_ID" \
+        "$flow" 2>&1 || log_warn "Flow $flow_name had errors"
+
+    # Capture screenshot after flow
+    "$ADB" -s "$DEVICE_ID" shell screencap -p /sdcard/"$flow_name"_after.png
+    "$ADB" -s "$DEVICE_ID" pull /sdcard/"$flow_name"_after.png "$ARTIFACTS_DIR/screenshots/" 2>/dev/null || true
 done
-'
 
 # Capture final screenshot
 log_info "Capturing final screenshot..."
-$ADB -s $DEVICE_ID shell screencap -p /sdcard/final.png
-$ADB -s $DEVICE_ID pull /sdcard/final.png "$ARTIFACTS_DIR/screenshots/" 2>/dev/null || true
+"$ADB" -s "$DEVICE_ID" shell screencap -p /sdcard/final.png
+"$ADB" -s "$DEVICE_ID" pull /sdcard/final.png "$ARTIFACTS_DIR/screenshots/" 2>/dev/null || true
 
 # Copy report if generated
-if [[ -d "$SCRIPT_DIR/reports" ]]; then
+if [[ -d "$SCRIPT_DIR/reports" && "$(ls -A "$SCRIPT_DIR/reports" 2>/dev/null)" ]]; then
     cp -r "$SCRIPT_DIR/reports/"* "$ARTIFACTS_DIR/reports/" 2>/dev/null || true
 fi
 
@@ -139,7 +143,7 @@ log_info "=== Test run complete ==="
 log_info "Artifacts: $ARTIFACTS_DIR"
 echo ""
 log_info "Screenshots:"
-ls -lh "$ARTIFACTS_DIR/screenshots/" 2>/dev/null | tail -10 || log_warn "No screenshots captured"
+ls -lh "$ARTIFACTS_DIR/screenshots/" 2>/dev/null | tail -15 || log_warn "No screenshots captured"
 
 echo ""
 log_info "Done."

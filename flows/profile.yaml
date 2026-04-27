@@ -1,33 +1,8 @@
 # Flow: Profile Screen Test
-# Description: Test user profile screen navigation and elements
+# NOTE: Screenshots captured via adb shell screencap in run.sh
+# TODO: Add tapOn id:"profile" after PR application3#34 merge
 
 appId: com.rulettv.app
-
 ---
 - launchApp
-- waitForAppToIdle: 2000
-
-# Navigate to Profile tab
-- tapOn:
-    id: "profile"
-- waitForAppToIdle: 2000
-
-- takeScreenshot: { name: "profile_screen" }
-
-# Scroll down to see more profile info
-- scrollUntilVisible:
-    element:
-      text: "Settings"
-- takeScreenshot: { name: "profile_scrolled" }
-
-# Open settings
-- tapOn:
-    text: "Settings"
-- waitForAppToIdle: 2000
-
-- takeScreenshot: { name: "settings_screen" }
-
-# Go back
-- tapOn:
-    id: "back"
-- waitForAppToIdle: 1000
+- waitForAnimationToEnd
