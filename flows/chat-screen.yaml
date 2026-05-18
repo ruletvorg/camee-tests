@@ -1,7 +1,0 @@
-# Flow: Chat Screen
-# NOTE: Screenshots captured via adb shell screencap in run.sh
-
-appId: com.rulettv.app
----
-- launchApp
-- waitForAnimationToEnd

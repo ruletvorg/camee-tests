@@ -1,8 +1,0 @@
-# Flow: Profile Screen Test
-# NOTE: Screenshots captured via adb shell screencap in run.sh
-# TODO: Add tapOn id:"profile" after PR application3#34 merge
-
-appId: com.rulettv.app
----
-- launchApp
-- waitForAnimationToEnd

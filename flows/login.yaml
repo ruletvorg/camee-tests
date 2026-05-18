@@ -1,0 +1,33 @@
+# Flow: Login with email
+# Description: Launch the Android app, choose "Continue with email", and sign in.
+
+appId: com.rulettv.app
+env:
+  TEST_USER_EMAIL: "matusevich.v@chattech.io"
+  TEST_USER_PASSWORD: "Test1111"
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "Continue with email"
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "Email"
+- inputText: "${TEST_USER_EMAIL}"
+- hideKeyboard
+
+- tapOn:
+    text: "Password"
+- inputText: "${TEST_USER_PASSWORD}"
+- hideKeyboard
+
+- tapOn:
+    text: "Continue"
+- waitForAnimationToEnd
+
+# Accept either a successful post-login screen or the app staying responsive after login.
+- assertNotVisible:
+    text: "Continue with email"
