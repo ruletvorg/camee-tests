@@ -11,7 +11,11 @@ env:
 - waitForAnimationToEnd
 
 - tapOn:
-    text: "Continue with email"
+    text: "Вход через Email"
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "Принять"
 - waitForAnimationToEnd
 
 - tapOn:
@@ -20,14 +24,18 @@ env:
 - hideKeyboard
 
 - tapOn:
-    text: "Password"
+    text: "Продолжить"
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "Пароль"
 - inputText: "${TEST_USER_PASSWORD}"
 - hideKeyboard
 
 - tapOn:
-    text: "Continue"
+    text: "Продолжить"
 - waitForAnimationToEnd
 
 # Accept either a successful post-login screen or the app staying responsive after login.
 - assertNotVisible:
-    text: "Continue with email"
+    text: "Вход через Email"
