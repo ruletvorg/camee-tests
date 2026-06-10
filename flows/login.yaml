@@ -38,12 +38,12 @@ env:
 
 # Verify post-login navigation bar tabs are visible.
 - assertVisible:
-    text: "Subscription"
+    text: "Подписки"
 - assertVisible:
-    text: "Feed"
+    text: "Лента"
 - assertVisible:
-    text: "Video chat"
+    text: "Live"
 - assertVisible:
-    text: "Store1"
+    text: "Магазин1"
 - assertVisible:
-    text: "Messages"
+    text: "Чаты"
