@@ -36,6 +36,14 @@ env:
     text: "Продолжить"
 - waitForAnimationToEnd
 
-# Accept either a successful post-login screen or the app staying responsive after login.
-- assertNotVisible:
-    text: "Вход через Email"
+# Verify post-login navigation bar tabs are visible.
+- assertVisible:
+    text: "Subscription"
+- assertVisible:
+    text: "Feed"
+- assertVisible:
+    text: "Video chat"
+- assertVisible:
+    text: "Store1"
+- assertVisible:
+    text: "Messages"
