@@ -44,6 +44,6 @@ env:
 - assertVisible:
     text: "Live"
 - assertVisible:
-    text: "Магазин1"
+    text: "Магазин"
 - assertVisible:
     text: "Чаты"
